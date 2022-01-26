@@ -10,25 +10,33 @@ def find_moves(origin)
     [origin[0] + 1, origin[1] + 2],
     [origin[0] + 1, origin[1] - 2],
     [origin[0] - 1, origin[1] + 2],
-    [origin[0] - 1, origin[1] - 2],
-    origin # to be referenced by the #path_search recursive call
-  ].intersection(board)
+    [origin[0] - 1, origin[1] - 2]
+  ].intersection(board).map { |possibility| [possibility] << [origin] }
 end
 
-def path_search(origin, destiny, edges = 1, queue = find_moves(origin),
-                path = '')
-  # iteration through the first tree level. On each of them add the possible
+def knight_moves(origin, destiny, edges = 1, queue = find_moves(origin))
+  # iteration through each tree's level. On each of them add the possible
   # moves from that position to the subsequent ones
-  path += origin.to_s
   queue.size.times do
-    return p edges, path if queue[0] == destiny
+    if queue[0][0] == destiny
+      path_taken = (queue[0][1].reverse << destiny).reduce do |message, move|
+        message.to_s + '-->' + move.to_s
+      end
+      message = "Took #{edges} moves to reach destination.\nThe moves were: #{path_taken}"
+      return puts message
+    end
 
-    queue << find_moves(queue[0])
+    # populate the next level queue
+    next_level = find_moves(queue[0][0])
+    next_level = next_level.map do |path| # add reference to the path taken
+      path[1] += queue[0][1]
+      path
+    end
+    queue << next_level
+
     queue.delete_at(0)
   end
-  path_search(origin, destiny, edges + 1, queue.reduce(:+), path)
+  knight_moves(origin, destiny, edges + 1, queue.reduce(:+))
 end
 
-def knight_moves(origin, destiny) end
-
-path_search([0, 0], [3, 8])
+knight_moves([4, 1], [7, 7])
